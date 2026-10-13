@@ -1,0 +1,17 @@
+{
+  "name": "mockup-video-iphone",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "check": "node --check src/app.js && node --check src/render.js"
+  },
+  "dependencies": {
+    "@mediabunny/aac-encoder": "^1.61.4",
+    "mediabunny": "^1.0.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "playwright-core": "^1.50.0"
+  }
+}

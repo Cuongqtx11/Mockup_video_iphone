@@ -1,0 +1,4 @@
+Device artwork: Apple Design Resources and upstream device-frame contributors.
+Source: https://github.com/jonnyjackson26/device-frames-media/tree/551098a1f40ce33e6376ab9fdcad2d0756d5a47c
+See upstream frame provenance and Apple Design Resources terms: https://developer.apple.com/design/resources/
+Images are device presentation assets; Apple and iPhone are trademarks of Apple Inc.

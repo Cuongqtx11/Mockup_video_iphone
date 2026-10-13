@@ -1,0 +1,845 @@
+[
+  {
+    "key": "16-pro-max",
+    "name": "iPhone 16 Pro Max",
+    "variants": [
+      {
+        "key": "natural-titanium",
+        "name": "Titan tự nhiên",
+        "color": "#282727",
+        "frame": "assets/frames/16-pro-max-natural-titanium.webp",
+        "mask": "assets/frames/16-pro-max-natural-titanium-mask.png",
+        "screen": {
+          "x": 100,
+          "y": 100,
+          "width": 1320,
+          "height": 2868
+        },
+        "frameSize": {
+          "width": 1520,
+          "height": 3068
+        }
+      },
+      {
+        "key": "black-titanium",
+        "name": "Titan đen",
+        "color": "#272727",
+        "frame": "assets/frames/16-pro-max-black-titanium.webp",
+        "mask": "assets/frames/16-pro-max-black-titanium-mask.png",
+        "screen": {
+          "x": 100,
+          "y": 100,
+          "width": 1320,
+          "height": 2868
+        },
+        "frameSize": {
+          "width": 1520,
+          "height": 3068
+        }
+      },
+      {
+        "key": "desert-titanium",
+        "name": "Titan sa mạc",
+        "color": "#69554A",
+        "frame": "assets/frames/16-pro-max-desert-titanium.webp",
+        "mask": "assets/frames/16-pro-max-desert-titanium-mask.png",
+        "screen": {
+          "x": 100,
+          "y": 100,
+          "width": 1320,
+          "height": 2868
+        },
+        "frameSize": {
+          "width": 1520,
+          "height": 3068
+        }
+      },
+      {
+        "key": "white-titanium",
+        "name": "Titan trắng",
+        "color": "#8A8785",
+        "frame": "assets/frames/16-pro-max-white-titanium.webp",
+        "mask": "assets/frames/16-pro-max-white-titanium-mask.png",
+        "screen": {
+          "x": 100,
+          "y": 100,
+          "width": 1320,
+          "height": 2868
+        },
+        "frameSize": {
+          "width": 1520,
+          "height": 3068
+        }
+      }
+    ]
+  },
+  {
+    "key": "16-pro",
+    "name": "iPhone 16 Pro",
+    "variants": [
+      {
+        "key": "natural-titanium",
+        "name": "Titan tự nhiên",
+        "color": "#272727",
+        "frame": "assets/frames/16-pro-natural-titanium.webp",
+        "mask": "assets/frames/16-pro-natural-titanium-mask.png",
+        "screen": {
+          "x": 100,
+          "y": 100,
+          "width": 1206,
+          "height": 2622
+        },
+        "frameSize": {
+          "width": 1406,
+          "height": 2822
+        }
+      },
+      {
+        "key": "black-titanium",
+        "name": "Titan đen",
+        "color": "#272727",
+        "frame": "assets/frames/16-pro-black-titanium.webp",
+        "mask": "assets/frames/16-pro-black-titanium-mask.png",
+        "screen": {
+          "x": 102,
+          "y": 100,
+          "width": 1206,
+          "height": 2622
+        },
+        "frameSize": {
+          "width": 1406,
+          "height": 2822
+        }
+      },
+      {
+        "key": "desert-titanium",
+        "name": "Titan sa mạc",
+        "color": "#363635",
+        "frame": "assets/frames/16-pro-desert-titanium.webp",
+        "mask": "assets/frames/16-pro-desert-titanium-mask.png",
+        "screen": {
+          "x": 104,
+          "y": 101,
+          "width": 1200,
+          "height": 2618
+        },
+        "frameSize": {
+          "width": 1406,
+          "height": 2822
+        }
+      },
+      {
+        "key": "white-titanium",
+        "name": "Titan trắng",
+        "color": "#8A8785",
+        "frame": "assets/frames/16-pro-white-titanium.webp",
+        "mask": "assets/frames/16-pro-white-titanium-mask.png",
+        "screen": {
+          "x": 102,
+          "y": 100,
+          "width": 1206,
+          "height": 2622
+        },
+        "frameSize": {
+          "width": 1406,
+          "height": 2822
+        }
+      }
+    ]
+  },
+  {
+    "key": "16-plus",
+    "name": "iPhone 16 Plus",
+    "variants": [
+      {
+        "key": "black",
+        "name": "Đen",
+        "color": "#373737",
+        "frame": "assets/frames/16-plus-black.webp",
+        "mask": "assets/frames/16-plus-black-mask.png",
+        "screen": {
+          "x": 100,
+          "y": 100,
+          "width": 1290,
+          "height": 2796
+        },
+        "frameSize": {
+          "width": 1490,
+          "height": 2996
+        }
+      },
+      {
+        "key": "pink",
+        "name": "Hồng",
+        "color": "#954B79",
+        "frame": "assets/frames/16-plus-pink.webp",
+        "mask": "assets/frames/16-plus-pink-mask.png",
+        "screen": {
+          "x": 100,
+          "y": 100,
+          "width": 1290,
+          "height": 2796
+        },
+        "frameSize": {
+          "width": 1490,
+          "height": 2996
+        }
+      },
+      {
+        "key": "teal",
+        "name": "Xanh mòng két",
+        "color": "#57757A",
+        "frame": "assets/frames/16-plus-teal.webp",
+        "mask": "assets/frames/16-plus-teal-mask.png",
+        "screen": {
+          "x": 100,
+          "y": 100,
+          "width": 1290,
+          "height": 2796
+        },
+        "frameSize": {
+          "width": 1490,
+          "height": 2996
+        }
+      },
+      {
+        "key": "ultramarine",
+        "name": "Xanh ultramarine",
+        "color": "#3B4777",
+        "frame": "assets/frames/16-plus-ultramarine.webp",
+        "mask": "assets/frames/16-plus-ultramarine-mask.png",
+        "screen": {
+          "x": 100,
+          "y": 100,
+          "width": 1290,
+          "height": 2796
+        },
+        "frameSize": {
+          "width": 1490,
+          "height": 2996
+        }
+      },
+      {
+        "key": "white",
+        "name": "Trắng",
+        "color": "#C7C7C7",
+        "frame": "assets/frames/16-plus-white.webp",
+        "mask": "assets/frames/16-plus-white-mask.png",
+        "screen": {
+          "x": 100,
+          "y": 100,
+          "width": 1290,
+          "height": 2796
+        },
+        "frameSize": {
+          "width": 1490,
+          "height": 2996
+        }
+      }
+    ]
+  },
+  {
+    "key": "16",
+    "name": "iPhone 16",
+    "variants": [
+      {
+        "key": "black",
+        "name": "Đen",
+        "color": "#373738",
+        "frame": "assets/frames/16-black.webp",
+        "mask": "assets/frames/16-black-mask.png",
+        "screen": {
+          "x": 100,
+          "y": 100,
+          "width": 1179,
+          "height": 2556
+        },
+        "frameSize": {
+          "width": 1379,
+          "height": 2756
+        }
+      },
+      {
+        "key": "pink",
+        "name": "Hồng",
+        "color": "#954B79",
+        "frame": "assets/frames/16-pink.webp",
+        "mask": "assets/frames/16-pink-mask.png",
+        "screen": {
+          "x": 100,
+          "y": 100,
+          "width": 1179,
+          "height": 2556
+        },
+        "frameSize": {
+          "width": 1379,
+          "height": 2756
+        }
+      },
+      {
+        "key": "teal",
+        "name": "Xanh mòng két",
+        "color": "#57757A",
+        "frame": "assets/frames/16-teal.webp",
+        "mask": "assets/frames/16-teal-mask.png",
+        "screen": {
+          "x": 100,
+          "y": 100,
+          "width": 1179,
+          "height": 2556
+        },
+        "frameSize": {
+          "width": 1379,
+          "height": 2756
+        }
+      },
+      {
+        "key": "ultramarine",
+        "name": "Xanh ultramarine",
+        "color": "#5868A7",
+        "frame": "assets/frames/16-ultramarine.webp",
+        "mask": "assets/frames/16-ultramarine-mask.png",
+        "screen": {
+          "x": 100,
+          "y": 100,
+          "width": 1179,
+          "height": 2556
+        },
+        "frameSize": {
+          "width": 1379,
+          "height": 2756
+        }
+      },
+      {
+        "key": "white",
+        "name": "Trắng",
+        "color": "#C7C7C7",
+        "frame": "assets/frames/16-white.webp",
+        "mask": "assets/frames/16-white-mask.png",
+        "screen": {
+          "x": 100,
+          "y": 100,
+          "width": 1179,
+          "height": 2556
+        },
+        "frameSize": {
+          "width": 1379,
+          "height": 2756
+        }
+      }
+    ]
+  },
+  {
+    "key": "15-pro-max",
+    "name": "iPhone 15 Pro Max",
+    "variants": [
+      {
+        "key": "natural-titanium",
+        "name": "Titan tự nhiên",
+        "color": "#6A655C",
+        "frame": "assets/frames/15-pro-max-natural-titanium.webp",
+        "mask": "assets/frames/15-pro-max-natural-titanium-mask.png",
+        "screen": {
+          "x": 99,
+          "y": 100,
+          "width": 1290,
+          "height": 2796
+        },
+        "frameSize": {
+          "width": 1490,
+          "height": 2996
+        }
+      },
+      {
+        "key": "black-titanium",
+        "name": "Titan đen",
+        "color": "#28292A",
+        "frame": "assets/frames/15-pro-max-black-titanium.webp",
+        "mask": "assets/frames/15-pro-max-black-titanium-mask.png",
+        "screen": {
+          "x": 99,
+          "y": 100,
+          "width": 1290,
+          "height": 2796
+        },
+        "frameSize": {
+          "width": 1490,
+          "height": 2996
+        }
+      },
+      {
+        "key": "blue-titanium",
+        "name": "Titan xanh",
+        "color": "#272E3A",
+        "frame": "assets/frames/15-pro-max-blue-titanium.webp",
+        "mask": "assets/frames/15-pro-max-blue-titanium-mask.png",
+        "screen": {
+          "x": 99,
+          "y": 100,
+          "width": 1290,
+          "height": 2796
+        },
+        "frameSize": {
+          "width": 1490,
+          "height": 2996
+        }
+      },
+      {
+        "key": "white-titanium",
+        "name": "Titan trắng",
+        "color": "#CDCAC5",
+        "frame": "assets/frames/15-pro-max-white-titanium.webp",
+        "mask": "assets/frames/15-pro-max-white-titanium-mask.png",
+        "screen": {
+          "x": 99,
+          "y": 100,
+          "width": 1290,
+          "height": 2796
+        },
+        "frameSize": {
+          "width": 1490,
+          "height": 2996
+        }
+      }
+    ]
+  },
+  {
+    "key": "15",
+    "name": "iPhone 15",
+    "variants": [
+      {
+        "key": "pink",
+        "name": "Hồng",
+        "color": "#E6C8CA",
+        "frame": "assets/frames/15-pink.webp",
+        "mask": "assets/frames/15-pink-mask.png",
+        "screen": {
+          "x": 120,
+          "y": 120,
+          "width": 1179,
+          "height": 2556
+        },
+        "frameSize": {
+          "width": 1419,
+          "height": 2796
+        }
+      },
+      {
+        "key": "yellow",
+        "name": "Vàng",
+        "color": "#EBE4C7",
+        "frame": "assets/frames/15-yellow.webp",
+        "mask": "assets/frames/15-yellow-mask.png",
+        "screen": {
+          "x": 120,
+          "y": 120,
+          "width": 1179,
+          "height": 2556
+        },
+        "frameSize": {
+          "width": 1419,
+          "height": 2796
+        }
+      }
+    ]
+  },
+  {
+    "key": "14-pro-max",
+    "name": "iPhone 14 Pro Max",
+    "variants": [
+      {
+        "key": "deep-purple",
+        "name": "Tím đậm",
+        "color": "#544458",
+        "frame": "assets/frames/14-pro-max-deep-purple.webp",
+        "mask": "assets/frames/14-pro-max-deep-purple-mask.png",
+        "screen": {
+          "x": 101,
+          "y": 98,
+          "width": 1290,
+          "height": 2796
+        },
+        "frameSize": {
+          "width": 1490,
+          "height": 2996
+        }
+      },
+      {
+        "key": "gold",
+        "name": "Vàng",
+        "color": "#907F59",
+        "frame": "assets/frames/14-pro-max-gold.webp",
+        "mask": "assets/frames/14-pro-max-gold-mask.png",
+        "screen": {
+          "x": 101,
+          "y": 100,
+          "width": 1290,
+          "height": 2796
+        },
+        "frameSize": {
+          "width": 1490,
+          "height": 2996
+        }
+      },
+      {
+        "key": "silver",
+        "name": "Bạc",
+        "color": "#7D7E7D",
+        "frame": "assets/frames/14-pro-max-silver.webp",
+        "mask": "assets/frames/14-pro-max-silver-mask.png",
+        "screen": {
+          "x": 101,
+          "y": 100,
+          "width": 1290,
+          "height": 2796
+        },
+        "frameSize": {
+          "width": 1490,
+          "height": 2996
+        }
+      },
+      {
+        "key": "space-black",
+        "name": "Đen không gian",
+        "color": "#2A2A2A",
+        "frame": "assets/frames/14-pro-max-space-black.webp",
+        "mask": "assets/frames/14-pro-max-space-black-mask.png",
+        "screen": {
+          "x": 101,
+          "y": 100,
+          "width": 1290,
+          "height": 2796
+        },
+        "frameSize": {
+          "width": 1490,
+          "height": 2996
+        }
+      }
+    ]
+  },
+  {
+    "key": "13",
+    "name": "iPhone 13",
+    "variants": [
+      {
+        "key": "blue",
+        "name": "Xanh",
+        "color": "#4A7CA8",
+        "frame": "assets/frames/13-blue.webp",
+        "mask": "assets/frames/13-blue-mask.png",
+        "screen": {
+          "x": 200,
+          "y": 200,
+          "width": 1170,
+          "height": 2532
+        },
+        "frameSize": {
+          "width": 1570,
+          "height": 2932
+        }
+      },
+      {
+        "key": "midnight",
+        "name": "Đêm",
+        "color": "#171C22",
+        "frame": "assets/frames/13-midnight.webp",
+        "mask": "assets/frames/13-midnight-mask.png",
+        "screen": {
+          "x": 200,
+          "y": 200,
+          "width": 1170,
+          "height": 2532
+        },
+        "frameSize": {
+          "width": 1570,
+          "height": 2932
+        }
+      },
+      {
+        "key": "pink",
+        "name": "Hồng",
+        "color": "#DCB6B8",
+        "frame": "assets/frames/13-pink.webp",
+        "mask": "assets/frames/13-pink-mask.png",
+        "screen": {
+          "x": 200,
+          "y": 200,
+          "width": 1170,
+          "height": 2532
+        },
+        "frameSize": {
+          "width": 1570,
+          "height": 2932
+        }
+      },
+      {
+        "key": "red",
+        "name": "Đỏ",
+        "color": "#991C19",
+        "frame": "assets/frames/13-red.webp",
+        "mask": "assets/frames/13-red-mask.png",
+        "screen": {
+          "x": 200,
+          "y": 200,
+          "width": 1170,
+          "height": 2532
+        },
+        "frameSize": {
+          "width": 1570,
+          "height": 2932
+        }
+      },
+      {
+        "key": "starlight",
+        "name": "Ánh sao",
+        "color": "#F9F5F1",
+        "frame": "assets/frames/13-starlight.webp",
+        "mask": "assets/frames/13-starlight-mask.png",
+        "screen": {
+          "x": 200,
+          "y": 200,
+          "width": 1170,
+          "height": 2532
+        },
+        "frameSize": {
+          "width": 1570,
+          "height": 2932
+        }
+      }
+    ]
+  },
+  {
+    "key": "13-mini",
+    "name": "iPhone 13 mini",
+    "variants": [
+      {
+        "key": "black",
+        "name": "Đen",
+        "color": "#363739",
+        "frame": "assets/frames/13-mini-black.webp",
+        "mask": "assets/frames/13-mini-black-mask.png",
+        "screen": {
+          "x": 100,
+          "y": 100,
+          "width": 1080,
+          "height": 2340
+        },
+        "frameSize": {
+          "width": 1280,
+          "height": 2540
+        }
+      },
+      {
+        "key": "blue",
+        "name": "Xanh",
+        "color": "#5887AA",
+        "frame": "assets/frames/13-mini-blue.webp",
+        "mask": "assets/frames/13-mini-blue-mask.png",
+        "screen": {
+          "x": 100,
+          "y": 100,
+          "width": 1080,
+          "height": 2340
+        },
+        "frameSize": {
+          "width": 1280,
+          "height": 2540
+        }
+      },
+      {
+        "key": "pink",
+        "name": "Hồng",
+        "color": "#FAE6E5",
+        "frame": "assets/frames/13-mini-pink.webp",
+        "mask": "assets/frames/13-mini-pink-mask.png",
+        "screen": {
+          "x": 100,
+          "y": 100,
+          "width": 1080,
+          "height": 2340
+        },
+        "frameSize": {
+          "width": 1280,
+          "height": 2540
+        }
+      },
+      {
+        "key": "product-red",
+        "name": "Đỏ",
+        "color": "#D72A36",
+        "frame": "assets/frames/13-mini-product-red.webp",
+        "mask": "assets/frames/13-mini-product-red-mask.png",
+        "screen": {
+          "x": 100,
+          "y": 100,
+          "width": 1080,
+          "height": 2340
+        },
+        "frameSize": {
+          "width": 1280,
+          "height": 2540
+        }
+      },
+      {
+        "key": "starlight",
+        "name": "Ánh sao",
+        "color": "#D4CECA",
+        "frame": "assets/frames/13-mini-starlight.webp",
+        "mask": "assets/frames/13-mini-starlight-mask.png",
+        "screen": {
+          "x": 100,
+          "y": 100,
+          "width": 1080,
+          "height": 2340
+        },
+        "frameSize": {
+          "width": 1280,
+          "height": 2540
+        }
+      }
+    ]
+  },
+  {
+    "key": "12-pro-max",
+    "name": "iPhone 12 Pro Max",
+    "variants": [
+      {
+        "key": "gold",
+        "name": "Vàng",
+        "color": "#C4AB85",
+        "frame": "assets/frames/12-pro-max-gold.webp",
+        "mask": "assets/frames/12-pro-max-gold-mask.png",
+        "screen": {
+          "x": 200,
+          "y": 200,
+          "width": 1284,
+          "height": 2778
+        },
+        "frameSize": {
+          "width": 1684,
+          "height": 3178
+        }
+      },
+      {
+        "key": "graphite",
+        "name": "Than chì",
+        "color": "#383833",
+        "frame": "assets/frames/12-pro-max-graphite.webp",
+        "mask": "assets/frames/12-pro-max-graphite-mask.png",
+        "screen": {
+          "x": 200,
+          "y": 200,
+          "width": 1284,
+          "height": 2778
+        },
+        "frameSize": {
+          "width": 1684,
+          "height": 3178
+        }
+      },
+      {
+        "key": "pacific-blue",
+        "name": "Xanh Thái Bình Dương",
+        "color": "#223846",
+        "frame": "assets/frames/12-pro-max-pacific-blue.webp",
+        "mask": "assets/frames/12-pro-max-pacific-blue-mask.png",
+        "screen": {
+          "x": 200,
+          "y": 200,
+          "width": 1284,
+          "height": 2778
+        },
+        "frameSize": {
+          "width": 1684,
+          "height": 3178
+        }
+      },
+      {
+        "key": "silver",
+        "name": "Bạc",
+        "color": "#989B94",
+        "frame": "assets/frames/12-pro-max-silver.webp",
+        "mask": "assets/frames/12-pro-max-silver-mask.png",
+        "screen": {
+          "x": 200,
+          "y": 200,
+          "width": 1284,
+          "height": 2778
+        },
+        "frameSize": {
+          "width": 1684,
+          "height": 3178
+        }
+      }
+    ]
+  },
+  {
+    "key": "11-pro-max",
+    "name": "iPhone 11 Pro Max",
+    "variants": [
+      {
+        "key": "white",
+        "name": "Trắng",
+        "color": "#FAFAF9",
+        "frame": "assets/frames/11-pro-max-white.webp",
+        "mask": "assets/frames/11-pro-max-white-mask.png",
+        "screen": {
+          "x": 180,
+          "y": 156,
+          "width": 1240,
+          "height": 2686
+        },
+        "frameSize": {
+          "width": 1600,
+          "height": 3000
+        }
+      }
+    ]
+  },
+  {
+    "key": "11-pro",
+    "name": "iPhone 11 Pro",
+    "variants": [
+      {
+        "key": "white",
+        "name": "Trắng",
+        "color": "#262626",
+        "frame": "assets/frames/11-pro-white.webp",
+        "mask": "assets/frames/11-pro-white-mask.png",
+        "screen": {
+          "x": 238,
+          "y": 182,
+          "width": 1124,
+          "height": 2434
+        },
+        "frameSize": {
+          "width": 1600,
+          "height": 2800
+        }
+      }
+    ]
+  },
+  {
+    "key": "11",
+    "name": "iPhone 11",
+    "variants": [
+      {
+        "key": "white",
+        "name": "Trắng",
+        "color": "#EBE9E5",
+        "frame": "assets/frames/11-white.webp",
+        "mask": "assets/frames/11-white-mask.png",
+        "screen": {
+          "x": 86,
+          "y": 105,
+          "width": 827,
+          "height": 1790
+        },
+        "frameSize": {
+          "width": 1000,
+          "height": 2000
+        }
+      }
+    ]
+  }
+]
