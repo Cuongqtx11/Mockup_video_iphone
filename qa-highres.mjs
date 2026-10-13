@@ -11,6 +11,7 @@ try {
     await page.locator('#quality').selectOption(quality);
     assert.equal(await page.locator('#output-size').textContent(), `${quality} × ${Math.round(Number(quality) * 16 / 9 / 2) * 2}`);
   }
+  await page.locator('#storage').selectOption('temp');
   await page.locator('#export').click();
   await page.waitForFunction(() => !document.getElementById('result-actions').hidden || document.getElementById('export-title').textContent === 'Chưa xuất được video', { timeout: 180000 });
   assert.equal(await page.locator('#export-title').textContent(), 'Mockup của bạn đã sẵn sàng.', await page.locator('#export-detail').textContent());
@@ -32,17 +33,6 @@ try {
   }
   await page.locator('#model').selectOption('0');
   await page.waitForFunction(() => !document.getElementById('export').disabled);
-  // Exercise automatic temporary storage without making a huge fixture:
-  // memory guard uses file duration; the decoder still sees the real short file.
-  await page.evaluate(() => Object.defineProperty(document.getElementById('source-video'), 'duration', { configurable: true, value: 300 }));
-  await page.locator('#storage').selectOption('auto');
-  await page.locator('#export').click();
-  await page.waitForFunction(() => !document.getElementById('result-actions').hidden || document.getElementById('export-title').textContent === 'Chưa xuất được video', { timeout: 180000 });
-  assert.equal(await page.locator('#export-title').textContent(), 'Mockup của bạn đã sẵn sàng.', await page.locator('#export-detail').textContent());
-  const tempDownload = page.waitForEvent('download'); await page.locator('#download').click();
-  await (await tempDownload).saveAs('test-results/4k-opfs.mp4');
-  const temporaryFiles = await page.evaluate(async () => { const dir = await (await navigator.storage.getDirectory()).getDirectoryHandle('mockup-iphone-output'); const files = []; for await (const [name,handle] of dir) files.push({name,size:(await handle.getFile()).size}); return files; });
-  assert.equal(temporaryFiles.length, 1); assert.ok(temporaryFiles[0].size > 1000);
   assert.deepEqual(errors, []);
-  console.log('PASS: HD, HD+, FHD, QHD, UHD dimensions; actual 4K export; repeat download after dialog closes; Web Share file handoff; all real device frames; automatic OPFS storage.');
+  console.log('PASS: HD, HD+, FHD, QHD, UHD dimensions; actual 4K export; repeat download after dialog closes; Web Share file handoff; all real device frames; disk-backed output.');
 } finally { await browser.close(); }

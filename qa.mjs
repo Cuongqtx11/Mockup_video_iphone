@@ -24,6 +24,7 @@ try {
   await page.locator('#model').selectOption('12');
   await page.locator('#model').selectOption('0');
   await page.locator('#quality').selectOption('720');
+  await page.locator('#storage').selectOption('temp');
   await page.locator('#export').click();
   await page.waitForFunction(() => !document.getElementById('result-actions').hidden || document.getElementById('export-title').textContent === 'Chưa xuất được video', { timeout: 120000 });
   assert.equal(await page.locator('#export-title').textContent(), 'Mockup của bạn đã sẵn sàng.', await page.locator('#export-detail').textContent());
@@ -41,7 +42,7 @@ try {
   assert.equal(await page.locator('#export-title').textContent(), 'Đã lưu video!', await page.locator('#export-detail').textContent());
   assert.ok(await page.evaluate(async () => (await (await (await navigator.storage.getDirectory()).getFileHandle('qa-output.mp4')).getFile()).size) > 1000);
   await page.locator('#cancel-export').click();
-  await page.locator('#storage').selectOption('ram');
+  await page.locator('#storage').selectOption('temp');
   await page.setViewportSize({ width: 390, height: 844 });
   await page.screenshot({ path: 'test-results/mobile.png', fullPage: true });
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, 'No mobile horizontal overflow');

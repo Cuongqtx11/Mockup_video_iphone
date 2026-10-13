@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "build": "node scripts/build.mjs",
-    "check": "node --check src/app.js && node --check src/render.js"
+    "check": "node --check src/app.js && node --check src/render.js && node --check src/file-storage.js && node --check src/file-worker.js && node --check src/download-worker.js && node --check src/text-render.js && node --check src/text-editor.js && node --check src/backgrounds.js"
   },
   "dependencies": {
     "@mediabunny/aac-encoder": "^1.61.4",
