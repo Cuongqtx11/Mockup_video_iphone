@@ -14,6 +14,7 @@ try {
   await page.waitForFunction(() => !document.getElementById('export').disabled);
   await page.waitForFunction(() => !document.getElementById('source-video').seeking);
   assert.match(await page.locator('#file-details').textContent(), /360 × 780/);
+  await page.waitForFunction(()=>{const c=document.getElementById('preview');const p=c.getContext('2d').getImageData(c.width/2,c.height/2,1,1).data;return Math.max(...p.slice(0,3))>100;},null,{timeout:10000});
   const pixel = await page.locator('#preview').evaluate(c => [...c.getContext('2d').getImageData(c.width / 2, c.height / 2, 1, 1).data]);
   assert.ok(Math.max(...pixel.slice(0, 3)) > 100, `First video frame must be visible: ${pixel}`);
   for (const ratio of ['1:1', '16:9', '9:16']) {
@@ -63,4 +64,4 @@ try {
   assert.equal(await page.evaluate(() => document.body.classList.contains('exporting')), false);
   assert.deepEqual(errors, []);
   console.log('PASS: first-frame preview, model selection, three ratios, MP4 export, disk streaming, compatibility export, audio routing, download, cancellation, responsive layout; no browser errors.');
-} finally { await browser.close(); }
+} catch(error) { console.log('QA STATE',await page.evaluate(()=>({source:document.getElementById('source-status').textContent,details:document.getElementById('file-details').textContent,toast:document.getElementById('toast').textContent,ready:document.getElementById('source-video').readyState,error:document.getElementById('source-video').error?.message,exportDisabled:document.getElementById('export').disabled})),errors);throw error;} finally { await browser.close(); }

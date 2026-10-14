@@ -10,7 +10,7 @@ async function ready(init, fixture = 'test-results/input.mp4') {
   await page.goto(base, { waitUntil: 'networkidle' });
   await page.locator('#video-file').setInputFiles(fixture);
   try { await page.waitForFunction(() => !document.getElementById('export').disabled); } catch(error) { console.log('LOAD FAILURE', await page.evaluate(()=>({toast:document.getElementById('toast').textContent,details:document.getElementById('file-details').textContent,videoState:document.getElementById('source-video').readyState,videoError:document.getElementById('source-video').error?.message,src:document.getElementById('source-video').getAttribute('src')}))); throw error; }
-  await page.locator('#quality').selectOption('720'); await page.locator('#storage').selectOption('temp');
+  await page.locator('#processing').selectOption('fast');await page.locator('#quality').selectOption('720'); await page.locator('#storage').selectOption('temp');
   return page;
 }
 async function completed(page) {
@@ -99,7 +99,7 @@ try {
   await page.locator('#quality').selectOption('1080'); await page.locator('#export').click();
   await page.waitForFunction(() => document.getElementById('progress').value > .02, null, {timeout:60000});
   await cancel(page, 'active 12-second Full HD encoding');
-  await page.locator('#quality').selectOption('720'); await page.locator('#export').click(); await completed(page);
+  await page.locator('#processing').selectOption('fast');await page.locator('#quality').selectOption('720'); await page.locator('#export').click(); await completed(page);
   const longDl = page.waitForEvent('download'); await page.locator('#download').click(); await (await longDl).saveAs('test-results/long-recovered.mp4'); await page.close();
   assert.deepEqual(errors, []);
   console.log('PASS: stalled worker/picker/disk cancellation; retry; actual downloaded MP4; SW unavailable; sync disk writer; active heavy export cancellation and 12-second retry.');

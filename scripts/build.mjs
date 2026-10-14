@@ -9,7 +9,7 @@ const app = await build({ ...options, entryPoints: ['src/app.js'], define: { EXP
 const appPath = Object.entries(app.metafile.outputs).find(([, info]) => info.entryPoint === 'src/app.js')[0].replace('dist/', '');
 let html = await readFile('dist/index.html', 'utf8');
 const cssHash = createHash('sha256').update(await readFile('dist/style.css')).digest('hex').slice(0,12);
-html = html.replace(/src="app(?:-[A-Z0-9]+)?\.js(?:\?[^\"]*)?"/, `src="${appPath}"`).replace(/href="style\.css(?:\?[^\"]*)?"/, `href="style.css?v=${cssHash}"`).replace(/<span class="beta">.*?<\/span>/, '<span class="beta">v4</span>');
+html = html.replace(/src="app(?:-[A-Z0-9]+)?\.js(?:\?[^\"]*)?"/, `src="${appPath}"`).replace(/href="style\.css(?:\?[^\"]*)?"/, `href="style.css?v=${cssHash}"`).replace(/<span class="beta">.*?<\/span>/, '<span class="beta">v5</span>');
 await writeFile('dist/index.html', html);
 for (const file of ['file-worker.js', 'download-worker.js']) await copyFile(`src/${file}`, `dist/${file}`);
 await mkdir('dist/licenses', { recursive: true });

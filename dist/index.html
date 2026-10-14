@@ -7,11 +7,11 @@
   <meta name="description" content="Tạo video mockup iPhone ngay trên thiết bị. Chọn khung máy, đổi nền và tải video về, không cần tải video lên server.">
   <title>Mockup video iPhone — HD đến 4K</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='12' fill='%236e50e8'/%3E%3Crect x='13' y='7' width='14' height='26' rx='5' fill='none' stroke='white' stroke-width='2.5'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="style.css?v=002612a8fbe2">
+  <link rel="stylesheet" href="style.css?v=71ea36a5e6a2">
 </head>
 <body>
 <header class="topbar">
-  <a class="brand" href="./" aria-label="Frame Studio"><span class="brand-mark"><svg viewBox="0 0 24 24" fill="none"><rect x="6.5" y="2.5" width="11" height="19" rx="3.5" stroke="currentColor" stroke-width="1.8"/><path d="M10 5h4M11 18h2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>Frame<span class="brand-light">studio</span><span class="beta">v4</span></a>
+  <a class="brand" href="./" aria-label="Frame Studio"><span class="brand-mark"><svg viewBox="0 0 24 24" fill="none"><rect x="6.5" y="2.5" width="11" height="19" rx="3.5" stroke="currentColor" stroke-width="1.8"/><path d="M10 5h4M11 18h2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>Frame<span class="brand-light">studio</span><span class="beta">v5</span></a>
   <span class="private-note"><span class="status-dot"></span>Miễn phí · không đăng nhập · video ở trên máy</span>
   <button id="reset" class="quiet" title="Đặt lại các tùy chỉnh">↺ <span>Đặt lại</span></button>
 </header>
@@ -68,7 +68,7 @@
         <label class="switch-row"><span>Đổ bóng máy</span><input id="shadow" type="checkbox" checked><span class="switch"></span></label>
         <label class="switch-row"><span>Giữ âm thanh gốc</span><input id="audio" type="checkbox" checked><span class="switch"></span></label>
       </section>
-      <section><h2>Xuất video</h2><label class="field-label" for="quality">Chất lượng</label><select id="quality"><option value="auto">Tự động theo thiết bị</option><option value="720">HD · 720p</option><option value="900">HD+ · 900p</option><option value="1080">Full HD · 1080p</option><option value="1440">2K / QHD · 1440p</option><option value="2160">4K / UHD · 2160p</option></select><label class="field-label" for="fps">Khung hình / giây</label><select id="fps"><option value="30">30 fps</option><option value="60">60 fps</option></select><label class="field-label" for="storage">Cách lưu</label><select id="storage"><option value="auto">Tự động · lưu vào tệp</option><option value="disk">Chọn tệp trên máy & ghi trực tiếp</option><option value="temp">Tệp tạm trên máy → lưu / chia sẻ</option></select>
+      <section><h2>Xuất video</h2><label class="field-label" for="processing">Chế độ xuất</label><select id="processing"><option value="auto">Tự động · ưu tiên ổn định trên iPhone</option><option value="stable">Tương thích · ghép đủ khung hình</option><option value="fast">Tốc độ cao · xử lý nền</option><option value="realtime">Ghi theo thời gian thực · dự phòng</option></select><label class="field-label" for="quality">Chất lượng</label><select id="quality"><option value="auto">Tự động theo thiết bị</option><option value="720">HD · 720p</option><option value="900">HD+ · 900p</option><option value="1080">Full HD · 1080p</option><option value="1440">2K / QHD · 1440p</option><option value="2160">4K / UHD · 2160p</option></select><label class="field-label" for="fps">Khung hình / giây</label><select id="fps"><option value="30">30 fps</option><option value="60">60 fps</option></select><label class="field-label" for="storage">Cách lưu</label><select id="storage"><option value="auto">Tự động · lưu vào tệp</option><option value="disk">Chọn tệp trên máy & ghi trực tiếp</option><option value="temp">Tệp tạm trên máy → lưu / chia sẻ</option></select>
         <div class="device-card"><span class="device-icon">▤</span><div><strong id="device-title">Đang kiểm tra thiết bị…</strong><p id="device-detail"></p></div></div><div class="export-meta"><span id="output-size">720 × 1280</span><span id="output-estimate">MP4 / WebM</span></div>
         <button id="export" class="primary" disabled><span>↓</span> Xuất & lưu video</button>
         <p class="export-note" id="export-note">Thêm video để xuất mockup của bạn.</p><p class="quality-note">Độ phân giải chính xác hiện ở trên nút xuất. Video gốc có độ phân giải thấp sẽ không tự có thêm chi tiết khi xuất 4K.</p>
@@ -76,12 +76,13 @@
       <div class="tip"><span>✧</span><p><strong>Mẹo nhỏ</strong><br>Video quay màn hình dọc sẽ vừa khung iPhone đẹp nhất.</p></div>
     </aside>
   </div>
-  <section id="last-result" class="last-result" hidden><div><strong>Bản xuất của bạn</strong><span id="last-result-info"></span></div><a id="last-download" class="secondary" download>Lưu video vào Tệp</a><button id="last-share" class="secondary" hidden>Lưu vào Ảnh / chia sẻ</button></section>
+  <section id="last-result" class="last-result" hidden><div><strong>Bản xuất của bạn</strong><span id="last-result-info"></span></div><a id="last-download" class="secondary" download>Lưu video vào Tệp</a><button id="last-share" class="secondary" hidden>Lưu vào thư viện Ảnh</button></section>
   <footer><span>MOCKUP VIDEO IPHONE <span class="footer-divider">/</span> Made for your next idea.</span><a href="https://github.com/Cuongqtx11/Mockup_video_iphone" target="_blank" rel="noopener">Mã nguồn trên GitHub ↗</a></footer>
 </main>
-<video id="source-video" playsinline preload="auto" muted hidden></video>
+<p id="source-status" class="source-status" role="status" hidden></p>
+<video id="source-video" class="capture-source" playsinline preload="metadata" muted aria-hidden="true"></video>
 <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
-<dialog id="export-dialog"><div class="dialog-icon">✦</div><h2 id="export-title">Đang tạo mockup…</h2><p id="export-detail">Video được xử lý ngay trên thiết bị của bạn.</p><progress id="progress" max="1" value="0"></progress><div class="progress-row"><span id="progress-label">Chuẩn bị…</span><span id="progress-percent">0%</span></div><p class="dialog-note">Giữ trang mở đến khi hoàn tất.</p><div id="result-actions" hidden><video id="result-preview" controls playsinline preload="metadata"></video><a id="download" class="primary" download>Lưu video vào Tệp</a><button id="share" class="secondary" hidden>Lưu vào Ảnh / chia sẻ</button><a id="open-result" class="open-result" target="_blank" rel="noopener">Mở video ở tab mới ↗</a><p id="save-help" class="save-help">Nút tải lưu vào thư mục Tải về. Bạn cũng có thể mở video ở tab mới để lưu.</p></div><button id="cancel-export" class="secondary">Hủy xuất</button></dialog>
-<script type="module" src="app-VDBKWFZP.js"></script>
+<dialog id="export-dialog"><div class="dialog-icon">✦</div><h2 id="export-title">Đang tạo mockup…</h2><p id="export-detail">Video được xử lý ngay trên thiết bị của bạn.</p><progress id="progress" max="1" value="0"></progress><div class="progress-row"><span id="progress-label">Chuẩn bị…</span><span id="progress-percent">0%</span></div><p class="dialog-note">Giữ trang mở đến khi hoàn tất.</p><div id="result-actions" hidden><video id="result-preview" controls playsinline preload="metadata"></video><a id="download" class="primary" download>Lưu video vào Tệp</a><button id="share" class="secondary" hidden>Lưu vào thư viện Ảnh</button><a id="open-result" class="open-result" target="_blank" rel="noopener">Mở video ở tab mới ↗</a><p id="save-help" class="save-help">Nút tải lưu vào thư mục Tải về. Bạn cũng có thể mở video ở tab mới để lưu.</p></div><button id="cancel-export" class="secondary">Hủy xuất</button></dialog>
+<script type="module" src="app-VYCIA5UW.js"></script>
 </body>
 </html>

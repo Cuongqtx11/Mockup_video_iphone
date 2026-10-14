@@ -1,6 +1,6 @@
 # Mockup_video_iphone
 
-Tạo video mockup iPhone trên trình duyệt, miễn phí và không cần đăng nhập.
+Tạo video mockup iPhone trên trình duyệt, miễn phí và không cần đăng nhập. Nhập tệp đọc metadata trực tiếp bằng parser, không phụ thuộc loadeddata/loadedmetadata của video native; thay tệp sẽ hủy request cũ. Canvas tái sử dụng lớp nền chứa cả viền máy, chỉ cấp bộ đệm cho vùng màn hình thấy được, gom cập nhật preview theo animation frame và giới hạn preview 30fps.
 
 **Web:** https://cuongqtx11.github.io/Mockup_video_iphone/
 
@@ -15,11 +15,11 @@ Tạo video mockup iPhone trên trình duyệt, miễn phí và không cần đ�
 
 **Không giữ toàn bộ bản xuất trong RAM, không upload video lên server.** Trình duyệt vẫn cần RAM cho khung hình, bộ mã hóa và các đoạn ghi nhỏ.
 
-WebCodecs ghép và mã hóa trong dedicated worker với OffscreenCanvas, giữ giao diện phản hồi. Hủy chấm dứt worker ngay; đọc/ghi có timeout, cleanup chạy sau khi giao diện đã được mở khóa. Tệp được kiểm tra kích thước pixel và thời lượng trước khi báo hoàn tất.
+Chế độ Tự động trên iPhone ưu tiên WebCodecs trong trang, nhường event loop sau từng khung để giữ Hủy hoạt động; dùng lại ảnh và font đã tải, giải phóng bộ giải mã xem trước trước khi xuất. Chế độ Tương thích ghép đủ khung hình ở fps đã chọn, không chạy đua theo thời gian phát video. Tốc độ cao dùng dedicated worker/OffscreenCanvas. Đường ghi theo thời gian thực chỉ là dự phòng và fps thực tế phụ thuộc máy. Hủy chấm dứt worker hoặc hủy bộ mã hóa ngay; đọc/ghi có timeout, cleanup chạy sau khi giao diện đã được mở khóa. Tệp được kiểm tra kích thước pixel và thời lượng trước khi báo hoàn tất.
 
 1. Chrome/Edge máy tính: chế độ Tự động mở bộ chọn tệp trước khi xuất, ghi từng phần vào tệp đã chọn. Hoàn tất là tệp đã có trên máy. Hủy xuất sẽ abort để giữ tệp cũ nếu chọn ghi đè.
 2. Safari/iPhone và trình duyệt không có showSaveFilePicker: ghi vào tệp cục bộ OPFS, sau đó dùng bảng chia sẻ để Lưu vào Tệp hoặc Lưu video vào Ảnh. Safari mới dùng createWritable; bản cũ có thể dùng createSyncAccessHandle trong dedicated worker khi API có sẵn.
-3. Tệp xuất sẵn sàng tải qua URL trỏ vào File ngay khi ghi xong. Trên iPhone ưu tiên File và bảng chia sẻ. Trên Chromium, service worker có thể nâng cấp đường tải sang Content-Disposition và HTTP Range; không đọc toàn bộ video bằng arrayBuffer để tải. Service worker không khởi động được cũng không chặn xuất hoặc tải.
+3. Tệp xuất sẵn sàng tải qua URL trỏ vào File ngay khi ghi xong. Trên iPhone ưu tiên File và bảng chia sẻ. Nút “Lưu vào thư viện Ảnh” gọi Web Share trực tiếp từ thao tác bấm, gửi File MP4; người dùng chọn “Lưu video”. Trình duyệt không có chia sẻ tệp vẫn hiện cách tải vào Tệp rồi Chia sẻ → Lưu video. Web không tự ghi vào Ảnh hoặc xác nhận người dùng đã lưu vào đích nào. Trên Chromium, service worker có thể nâng cấp đường tải sang Content-Disposition và HTTP Range; không đọc toàn bộ video bằng arrayBuffer để tải. Service worker không khởi động được cũng không chặn xuất hoặc tải.
 4. Đường dự phòng MediaRecorder cũng ghi các đoạn ngắn vào tệp, không gom danh sách chunk của cả video trong RAM. MP4 được chuẩn hóa âm thanh AAC trên tệp khi môi trường hỗ trợ.
 
 MP4 H.264/AAC được ưu tiên. Máy không mã hóa được H.264 có thể xuất WebM; WebM lưu được vào Tệp nhưng có thể không nhập trực tiếp vào Ảnh iPhone. Safari chưa hỗ trợ bộ chọn tệp ghi trực tiếp như Chrome; không thể tự ghi vào thư viện Ảnh mà không có thao tác người dùng trong bảng chia sẻ.
@@ -37,7 +37,9 @@ python3 -m http.server 8766 --directory dist
 
 Mở http://localhost:8766. Các bài kiểm tra dùng playwright-core và Chromium có sẵn; tạo video thử bằng `node scripts/create-test-videos.mjs` (cần FFmpeg).
 
-- `qa-loading.mjs`: mở/thay 12 video qua các lần tải lại trang, kiểm tra khung hình đầu thực sự đã giải mã.
+- `qa-loading.mjs`: mở/thay 12 video qua các lần tải lại trang, nhận metadata không cần chờ giải mã khung đầu.
+- `qa-60fps.mjs`: video nguồn 720×1280 / 60fps / 3s, xuất QHD 1440×2560 và UHD 2160×3840 ở 60fps, Hủy/xuất lại, phát/tải trên web; FFprobe xác nhận 180 khung/3s, H.264/AAC, frame hash xác nhận chuyển động thật. `BASE_URL` chạy trên bản công khai.
+- `qa-stability.mjs`: nhập khi video native không phát sự kiện, thay nhanh tệp, đường Tự động iPhone, ghép đủ 12 giây ở 30fps, Hủy/xuất lại, tải thật, chia sẻ File đúng user gesture và tự chuyển đường xử lý sau lỗi worker. WebKit Linux kiểm tra parser nhập/thay video khi tắt decoder native (codec của bản WPE không hoạt động); bản WPE này không có MediaRecorder và bộ mã hóa H.264 không chạy được, nên không thay thế kiểm tra Safari/iPhone thật.
 - `qa-live.mjs`: mở bản công khai, hủy/xuất lại video 12 giây có chữ, phát thật trong trình duyệt và tải hai lần.
 - `qa.mjs`: xem trước, tỷ lệ, xuất/tải từ tệp, ghi trực tiếp, MediaRecorder, hủy xuất, bố cục mobile.
 - `qa-highres.mjs`: các mức HD đến 4K, xuất 4K thật, tải lại và chia sẻ File, các khung máy.

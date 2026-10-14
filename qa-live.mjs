@@ -4,11 +4,11 @@ const browser = await chromium.launch({ executablePath:'/usr/bin/chromium', args
 const page = await browser.newPage({viewport:{width:1440,height:1080}}), errors=[];
 page.on('pageerror', error=>errors.push(error.message));
 try {
-  await page.goto(process.env.BASE_URL || 'https://cuongqtx11.github.io/Mockup_video_iphone/?v=export-4', {waitUntil:'networkidle'});
-  assert.equal(await page.locator('.beta').textContent(), 'v4');
+  await page.goto(process.env.BASE_URL || 'https://cuongqtx11.github.io/Mockup_video_iphone/?v=export-5', {waitUntil:'networkidle'});
+  assert.equal(await page.locator('.beta').textContent(), 'v5');
   await page.locator('#video-file').setInputFiles('test-results/long.mp4');
   await page.waitForFunction(()=>!document.getElementById('export').disabled);
-  await page.locator('#storage').selectOption('temp'); await page.locator('#quality').selectOption('720');
+  await page.locator('#processing').selectOption('stable');await page.locator('#storage').selectOption('temp'); await page.locator('#quality').selectOption('720');
   await page.locator('#backgrounds button[title="Aurora"]').click();
   await page.locator('#add-text').click(); await page.locator('#text-content').fill('VIDEO ĐÃ XUẤT');
   await page.locator('#text-template').selectOption('poster');
@@ -25,12 +25,12 @@ try {
   await page.locator('#result-preview').evaluate(v=>v.play());
   await page.waitForFunction(()=>document.getElementById('result-preview').currentTime>1.5,null,{timeout:10000});
   await page.locator('#result-preview').evaluate(v=>v.pause());
-  await page.screenshot({path:'test-results/live-v4-playing.png',fullPage:true});
+  await page.screenshot({path:'test-results/live-v5-playing.png',fullPage:true});
   const meta=await page.locator('#result-preview').evaluate(v=>({width:v.videoWidth,height:v.videoHeight,duration:v.duration,currentTime:v.currentTime,readyState:v.readyState}));
   assert.equal(meta.duration,12); assert.equal(meta.width,720); assert.equal(meta.height,1280);
-  const dl=page.waitForEvent('download'); await page.locator('#download').click(); const download=await dl; await download.saveAs('test-results/live-v4.mp4');
+  const dl=page.waitForEvent('download'); await page.locator('#download').click(); const download=await dl; await download.saveAs('test-results/live-v5.mp4');
   assert.equal(await download.failure(),null);
   await page.locator('#cancel-export').click();
-  const again=page.waitForEvent('download');await page.locator('#last-download').click();await(await again).saveAs('test-results/live-v4-again.mp4');
+  const again=page.waitForEvent('download');await page.locator('#last-download').click();await(await again).saveAs('test-results/live-v5-again.mp4');
   assert.deepEqual(errors,[]); console.log('PUBLIC PASS:',JSON.stringify(meta),'cancel/retry, text, playback, actual download and repeated download.');
 } finally {await browser.close();}

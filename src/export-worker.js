@@ -31,10 +31,11 @@ self.onmessage = async ({ data }) => {
     slot = handle ? await openChosenOutput(handle) : await openTemporaryOutput(mp4Codec ? 'mp4' : 'webm', { onName: name => send('slot', { name }) });
     const format = mp4Codec ? new Mp4OutputFormat({ fastStart: false }) : new WebMOutputFormat();
     output = new Output({ target: new StreamTarget(new WritableStream({ write: chunk => slot.write(chunk) }), { chunked: true, chunkSize: 1024 * 1024 }), format });
+    let renderedFrames=0,lastFrameReport=0;
     const canvas = new OffscreenCanvas(width, height), ctx = canvas.getContext('2d', { alpha: false });
     const render = createRenderer(() => ({ state, variant, assets: { frame, mask }, backgroundImage, backgroundUrl: data.backgroundUrl }));
     phase('Đang chuẩn bị video…');
-    const conversion = await waitFor(Conversion.init({ input, output, tracks: 'primary', video: { codec, quality: new Quality({ bitrate }), frameRate: fps, processedWidth: width, processedHeight: height, allowTransformationMetadata: false, process(sample) { render(ctx, sample, sample.displayWidth, sample.displayHeight, sample.timestamp); return canvas; } }, audio: { discard: !audio, codec: mp4Codec ? 'aac' : 'opus' }, tags: { title: data.title } }), { timeout: 25000 });
+    const conversion = await waitFor(Conversion.init({ input, output, tracks: 'primary', video: { codec, quality: new Quality({ bitrate }), frameRate: fps, processedWidth: width, processedHeight: height, allowTransformationMetadata: false, process(sample) { render(ctx, sample, sample.displayWidth, sample.displayHeight, sample.timestamp);renderedFrames++;const now=performance.now();if(now-lastFrameReport>250){lastFrameReport=now;send('frames',{frames:renderedFrames,timestamp:sample.timestamp});}return canvas; } }, audio: { discard: !audio, codec: mp4Codec ? 'aac' : 'opus' }, tags: { title: data.title } }), { timeout: 25000 });
     if (!conversion.isValid || conversion.discardedTracks.some(t => t.reason !== 'discarded_by_user')) {
       await slot.abort(); slot = null; send('fallback'); return;
     }

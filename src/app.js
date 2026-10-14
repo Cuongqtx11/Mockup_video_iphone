@@ -5,6 +5,8 @@ import { BACKGROUNDS, paintBackground } from './backgrounds.js';
 import { createTextEditor } from './text-editor.js';
 import { openTemporaryOutput, openChosenOutput, copyFileInto, prepareDownloader, fileDownloadUrl, removeTemporaryOutput } from './file-storage.js';
 
+import { exportSequence } from './sequence-export.js';
+import { attachVideo, readMetadata, loadImage } from './source-loader.js';
 import { waitFor, checkActive, abortError } from './export-control.js';
 
 const $ = (id) => document.getElementById(id);
@@ -14,6 +16,7 @@ const ctx = preview.getContext('2d', { alpha: false });
 let FINISHES = MODELS[0].variants;
 const defaults = { model: 0, finish: 0, background: 0, color: null, ratio: '9:16', scale: 78, zoom: 100, fit: 'cover', shadow: true, deviceX: 50, deviceY: 50, texts: [] };
 let state = structuredClone(defaults);
+let sourceInfo = null, sourceLoad = null;
 let file = null, fileUrl = null, backgroundImage = null, backgroundUrl = null, exportBlob = null, resultUrl = null;
 let busy = false, recorder = null, toastTimer, renderCache = null;
 let frameAssets = null, loadingFrame = true, frameLoadToken = 0, currentOutputSlot = null;
@@ -23,6 +26,7 @@ const deviceMemory = Number(navigator.deviceMemory) || null;
 
 function toast(message) { $('toast').textContent = message; $('toast').hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => $('toast').hidden = true, 6500); }
 function time(seconds) { if (!Number.isFinite(seconds)) return '0:00'; return `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, '0')}`; }
+function sourceDuration(){return sourceInfo?.duration || video.duration || 0;}
 function bytes(n) { return n >= 1024 ** 3 ? `${(n / 1024 ** 3).toFixed(1)} GB` : `${(n / 1024 ** 2).toFixed(1)} MB`; }
 function dimensions() {
   const quality = $('quality').value;
@@ -31,23 +35,22 @@ function dimensions() {
   return ratio >= 1 ? [Math.round(edge * ratio / 2) * 2, edge] : [edge, Math.round(edge / ratio / 2) * 2];
 }
 function bitrate() { const [w, h] = dimensions(); return Math.min(60e6, Math.round(w * h * Number($('fps').value) * .10)); }
-function estimatedSize() { return (bitrate() + ($('audio').checked ? 192000 : 0)) / 8 * (video.duration || 0) * 1.12; }
+function estimatedSize() { return (bitrate() + ($('audio').checked ? 192000 : 0)) / 8 * (sourceDuration() || 0) * 1.12; }
 function updateExportInfo() {
   const [w, h] = dimensions(); $('output-size').textContent = `${w} × ${h}`;
   $('output-estimate').textContent = file ? `≈ ${bytes(estimatedSize())}` : 'MP4 / WebM';
-  $('export-note').textContent = !file ? 'Thêm video để xuất mockup của bạn.' : 'Ghi từng phần vào tệp · không gom cả video trong RAM.';
+  $('export-note').textContent = file&&loadingFrame?'Đang tải khung iPhone…':file&&!frameAssets?'Khung iPhone chưa tải được. Hãy chọn lại dòng máy.':!file ? 'Thêm video để xuất mockup của bạn.' : 'Ghi từng phần vào tệp · không gom cả video trong RAM.';
 }
-const render = createRenderer(() => ({ state: { ...state, backgroundPreset: BACKGROUNDS[state.background] }, variant: FINISHES[state.finish], assets: frameAssets, backgroundImage, backgroundUrl }));
+const render = createRenderer(() => ({ state: { ...state, backgroundPreset: BACKGROUNDS[state.background] }, variant: FINISHES[state.finish], assets: frameAssets, backgroundImage, backgroundUrl, pendingVideo:!!file }));
 async function loadFrame() {
   const token = ++frameLoadToken; loadingFrame = true; frameAssets = null;
   $('export').disabled = true;
   const variant = FINISHES[state.finish];
-  const frame = new Image(), mask = new Image(); frame.src = variant.frame; mask.src = variant.mask;
   try {
-    await Promise.all([frame.decode(), mask.decode()]);
+    const [frame,mask]=await Promise.all([loadImage(variant.frame),loadImage(variant.mask)]);
     if (token !== frameLoadToken) return;
-    frameAssets = { frame, mask }; loadingFrame = false; $('export').disabled = !file; drawPreview();
-  } catch { if (token === frameLoadToken) { loadingFrame = false; toast('Không tải được khung máy. Hãy chọn lại dòng máy hoặc tải lại trang.'); } }
+    frameAssets = { frame, mask }; loadingFrame = false; $('export').disabled = !file; drawPreview();updateExportInfo();
+  } catch { if (token === frameLoadToken) { loadingFrame = false;updateExportInfo();toast('Không tải được khung máy. Hãy chọn lại dòng máy hoặc tải lại trang.'); } }
 }
 function showFinishes() {
   FINISHES = MODELS[state.model].variants; state.finish = 0;
@@ -62,11 +65,13 @@ function showFinishes() {
     }; $('finishes').append(button);
   }); loadFrame();
 }
-function drawPreview(now = performance.now()) { if (busy) return; render(ctx, file && video.readyState >= 2 ? video : null, video.videoWidth, video.videoHeight, file ? video.currentTime : now / 1000); }
-function animate(now) { if (!busy && (!file || !video.paused)) drawPreview(now); requestAnimationFrame(animate); }
+let previewRequest=0, lastPreview=0;
+function paintPreview(now=performance.now()) { if(busy)return; render(ctx,file&&video.readyState>=2?video:null,video.videoWidth,video.videoHeight,file?video.currentTime:now/1000); }
+function drawPreview(){if(previewRequest)return;previewRequest=requestAnimationFrame(now=>{previewRequest=0;paintPreview(now);});}
+function animate(now){if(!busy&&!document.hidden&&now-lastPreview>=1000/30&&(!file||!video.paused)){lastPreview=now;drawPreview();}requestAnimationFrame(animate);}
 function changeLayout() {
   const ratio = state.ratio === '9:16' ? 9 / 16 : state.ratio === '16:9' ? 16 / 9 : 1;
-  preview.height = ratio < 1 ? 960 : 540; preview.width = Math.round(preview.height * ratio);
+  preview.height = ratio < 1 ? (innerWidth<600?640:960) : 540; preview.width = Math.round(preview.height * ratio);
   preview.style.height = state.ratio === '16:9' ? 'auto' : ''; preview.style.width = state.ratio === '16:9' ? '100%' : '';
   renderCache = null; drawPreview(); updateExportInfo();
 }
@@ -91,35 +96,35 @@ $('bg-image').onchange = async () => {
 $('remove-bg').onclick = () => { clearBackground(); syncBackgroundButtons(); drawPreview(); };
 const { sync: syncTextControls, ensureFonts } = createTextEditor({ getState: () => state, isBusy: () => busy, canvas: preview, renderer: render, redraw: drawPreview });
 
-let loadingToken = 0;
-async function loadFile(selected) {
-  if (!selected || busy) return;
-  if (selected.type && !selected.type.startsWith('video/') && !/\.(mp4|mov|m4v|webm|mkv)$/i.test(selected.name)) { toast('Hãy chọn một tệp video.'); return; }
-  const token = ++loadingToken; video.pause(); file = null; $('export').disabled = true; $('play').disabled = true; $('seek').disabled = true;
-  if (fileUrl) URL.revokeObjectURL(fileUrl);
-  fileUrl = URL.createObjectURL(selected);
-  try {
-    await new Promise((resolve, reject) => {
-      const clean = () => { video.removeEventListener('loadeddata', ready); video.removeEventListener('loadedmetadata', seekFirstFrame); video.removeEventListener('error', failed); clearTimeout(timeout); };
-      const ready = () => { clean(); resolve(); };
-      const failed = () => { clean(); reject(new Error('Không đọc được video')); };
-      const seekFirstFrame = () => { if (Number.isFinite(video.duration) && video.duration > 0) video.currentTime = Math.min(.001, video.duration / 2); };
-      const timeout = setTimeout(failed, 20000);
-      // Subscribe before load and request decoded data, not metadata alone.
-      video.addEventListener('loadeddata', ready); video.addEventListener('loadedmetadata', seekFirstFrame); video.addEventListener('error', failed);
-      video.preload = 'auto'; video.src = fileUrl; video.load();
-    });
-    if (token !== loadingToken) return;
-    if (!Number.isFinite(video.duration) || !video.videoWidth) throw new Error('Video không có thời lượng hợp lệ');
-    file = selected; $('dropzone').hidden = true; $('file-info').hidden = false; $('file-name').textContent = selected.name;
-    $('file-details').textContent = `${video.videoWidth} × ${video.videoHeight} · ${time(video.duration)} · ${bytes(selected.size)}`;
-    $('duration').textContent = time(video.duration); $('current-time').textContent = '0:00'; $('seek').value = 0; $('play').disabled = false; $('seek').disabled = false; $('export').disabled = loadingFrame || !frameAssets; $('demo-label').hidden = true;
-    // A tiny seek makes Chromium/Safari present a decoded frame even when the
-    // source video is hidden and has never played.
-    video.currentTime = Math.min(.001, video.duration / 2);
-    drawPreview(); updateExportInfo();
-    if (selected.size > 1024 ** 3) toast('Tệp lớn được đọc theo từng phần. Bạn có thể chọn 720p để xuất nhẹ hơn.');
-  } catch { if (token === loadingToken) { video.removeAttribute('src'); video.load(); URL.revokeObjectURL(fileUrl); fileUrl = null; $('file-info').hidden = true; $('dropzone').hidden = false; $('demo-label').hidden = false; toast('Trình duyệt chưa đọc được video này. Hãy thử MP4 H.264 hoặc WebM.'); drawPreview(); } }
+let loadingToken=0;
+async function loadFile(selected){
+  if(!selected||busy)return;
+  if(selected.type&&!selected.type.startsWith('video/')&&!/\.(mp4|mov|m4v|webm|mkv)$/i.test(selected.name)){toast('Hãy chọn một tệp video.');return;}
+  const token=++loadingToken;
+  sourceLoad?.abort();sourceLoad=new AbortController();const signal=sourceLoad.signal;
+  video.pause();video.removeAttribute('src');video.load();sourceInfo=null;file=null;
+  $('export').disabled=$('play').disabled=$('seek').disabled=true;
+  if(fileUrl)URL.revokeObjectURL(fileUrl);fileUrl=URL.createObjectURL(selected);
+  $('dropzone').hidden=true;$('file-info').hidden=false;$('file-name').textContent=selected.name;
+  $('file-details').textContent=`Đang đọc video · ${bytes(selected.size)}`;$('demo-label').hidden=true;
+  $('source-status').hidden=false;$('source-status').textContent='Đang đọc thông tin video…';
+  try{
+    const url=fileUrl;
+    attachVideo(video,url,{signal}).then(()=>{if(token===loadingToken){if(video.readyState>=1&&video.currentTime===0)video.currentTime=Math.min(.001,sourceDuration()/2);drawPreview();}}).catch(error=>{if(token===loadingToken&&!signal.aborted&&file)$('source-status').textContent='Video đã nhận; trình duyệt chưa mở được xem trước. Thử chọn chế độ Tốc độ cao.';});
+    const info=await readMetadata(selected,{signal});if(token!==loadingToken)return;
+    sourceInfo=info;file=selected;
+    $('file-details').textContent=`${info.width} × ${info.height} · ${time(info.duration)} · ${bytes(selected.size)}`;
+    $('duration').textContent=time(info.duration);$('current-time').textContent='0:00';$('seek').value=0;
+    $('play').disabled=$('seek').disabled=false;$('export').disabled=loadingFrame||!frameAssets;
+    $('source-status').hidden=video.readyState>=2;$('source-status').textContent='Video đã nhận. Bấm ▶ nếu khung hình xem trước chưa hiện.';
+    if(video.readyState>=1&&video.currentTime===0)video.currentTime=Math.min(.001,info.duration/2);
+    drawPreview();updateExportInfo();
+  }catch(error){if(token!==loadingToken||signal.aborted)return;video.removeAttribute('src');video.load();sourceInfo=null;file=null;$('source-status').textContent=error.message;$('file-details').textContent='Chưa đọc được video · bấm ↺ để chọn lại';toast(error.message);drawPreview();}
+}
+video.addEventListener('loadeddata',()=>{if(file&&video.readyState>=2){$('source-status').hidden=true;if(video.paused&&!busy&&video.currentTime===0)video.currentTime=Math.min(.001,sourceDuration()/2);drawPreview();}});
+async function restoreSource(job){
+  if(!fileUrl||currentJob!==job)return;
+  if(video.getAttribute('src')!==fileUrl)await jobWait(job,attachVideo(video,fileUrl,{signal:job.signal}));
 }
 $('video-file').onchange = () => { const f = $('video-file').files[0]; $('video-file').value = ''; loadFile(f); };
 $('replace').onclick = () => $('video-file').click();
@@ -130,9 +135,9 @@ $('dropzone').addEventListener('drop', (e) => loadFile(e.dataTransfer.files[0]))
 $('play').onclick = async () => { try { if (video.paused) { if (audioContext) await audioContext.resume(); await video.play(); } else video.pause(); } catch { toast('Không phát được video. Hãy chọn lại tệp.'); } };
 video.onplay = () => { $('play').textContent = 'Ⅱ'; $('play').setAttribute('aria-label', 'Tạm dừng video'); };
 video.onpause = () => { $('play').textContent = '▶'; $('play').setAttribute('aria-label', 'Phát video'); };
-video.ontimeupdate = () => { if (!busy) { $('current-time').textContent = time(video.currentTime); $('seek').value = video.currentTime / video.duration * 100 || 0; } };
+video.ontimeupdate = () => { if (!busy) { $('current-time').textContent = time(video.currentTime); $('seek').value = video.currentTime / sourceDuration() * 100 || 0; } };
 video.onseeked = () => drawPreview();
-$('seek').oninput = () => { if (file) video.currentTime = Number($('seek').value) / 100 * video.duration; };
+$('seek').oninput = () => { if (file) video.currentTime = Number($('seek').value) / 100 * sourceDuration(); };
 $('mute').onclick = async () => { previewMuted = !previewMuted; video.muted = audioSource ? false : previewMuted; if (monitorGain) { await audioContext.resume(); monitorGain.gain.value = previewMuted ? 0 : 1; } $('mute').textContent = previewMuted ? '♬' : '♪'; $('mute').title = previewMuted ? 'Bật âm thanh xem trước' : 'Tắt âm thanh xem trước'; $('mute').setAttribute('aria-label', $('mute').title); };
 $('reset').onclick = () => {
   if (busy) return; state = structuredClone(defaults); syncTextControls(); clearBackground(); $('device-x').value = $('device-y').value = 50; $('device-x-value').textContent = $('device-y-value').textContent = '50%'; $('model').value = 0; $('scale').value = 78; $('zoom').value = 100; $('fit').value = 'cover'; $('shadow').checked = true; $('audio').checked = true; $('scale-value').textContent = '78%'; $('zoom-value').textContent = '100%'; $('quality').value = 'auto'; $('fps').value = '30'; $('storage').value = 'auto'; showFinishes(); $('ratios').children[0].click(); syncBackgroundButtons(); changeLayout(); toast('Đã đặt lại bố cục và nền.');
@@ -156,7 +161,7 @@ function unlock(job) {
 function report(job, progress, label) { if (currentJob === job && !job.signal.aborted) setProgress(progress, label); }
 function jobWait(job, promise, timeout = 30000, message) { return waitFor(promise, { signal: job.signal, timeout, message }); }
 function disposeJob(job) {
-  job.worker?.terminate(); job.worker = null;
+  job.worker?.terminate(); job.worker = null;job.stopSequence?.();job.stopSequence=null;
   job.stopRecording?.(); job.stopRecording = null;
   if (job.slotName) removeTemporaryOutput(job.slotName);
   job.sink?.abort().catch(() => {});
@@ -178,6 +183,7 @@ async function runWorker(job, handle, source = file) {
       worker.onmessage = ({ data }) => {
         if (settled) return;
         arm();
+        if(data.type==='frames'){if(data.timestamp>previousProgress*sourceDuration()){lastAdvance=performance.now();}report(job,Math.min(.95,Math.max(previousProgress,data.timestamp/sourceDuration()*.95)),`Đã ghép ${data.frames} khung · ${time(data.timestamp)} / ${time(sourceDuration())}`);}
         if (data.type === 'slot') job.slotName = data.name;
         if (data.type === 'progress') {
           if (data.progress > previousProgress) { previousProgress = data.progress; lastAdvance = performance.now(); }
@@ -204,14 +210,14 @@ async function normalizeRecording(job, recorded) {
   let slot, conversion;
   try {
     const audioTrack = await jobWait(job, input.getPrimaryAudioTrack());
-    if (!audioTrack || audioTrack.codec === 'aac') return recorded;
+    if (!audioTrack || await jobWait(job,audioTrack.getCodec()) === 'aac') return recorded;
     await jobWait(job, ensureAac());
     slot = await openTemporaryOutput('mp4', { signal: job.signal }); job.sink = slot;
     const output = new Output({ target: new StreamTarget(new WritableStream({ write: chunk => slot.write(chunk) }), { chunked: true, chunkSize: 1024 * 1024 }), format: new Mp4OutputFormat({ fastStart: false }) });
     conversion = await jobWait(job, Conversion.init({ input, output, tracks: 'primary', video: { codec: 'avc' }, audio: { codec: 'aac' } }));
     if (!conversion.isValid || conversion.discardedTracks.length) throw new Error('Không chuẩn hóa được âm thanh MP4. Hãy thử tắt âm thanh khi xuất.');
     report(job, .98, 'Đang chuẩn hóa âm thanh MP4…');
-    await jobWait(job, conversion.execute(), Math.max(30000, video.duration * 3000));
+    await jobWait(job, conversion.execute(), Math.max(30000, sourceDuration() * 3000));
     const result = { file: await slot.commit(), slotName: slot.name, mime: 'video/mp4', extension: 'mp4' };
     recorded.slot.remove(); job.sink = null; return result;
   } catch (error) { conversion?.cancel().catch(() => {}); slot?.abort().catch(() => {}); throw error; }
@@ -228,7 +234,7 @@ async function exportRealtime(job, handle) {
   if (handle && extension !== 'mp4') throw new Error('Trình duyệt chỉ ghi được WebM. Hãy chọn tệp tạm để lưu đúng định dạng.');
   const slot = await openTemporaryOutput(extension, { signal: job.signal, onName: name => job.slotName = name }); job.sink = slot;
   const stream = canvas.captureStream(Number($('fps').value)), oldTime = video.currentTime;
-  let destination, raf, recording, position = 0, queued = 0, writeError, writeQueue = Promise.resolve(), success = false, stopped = false;
+  let destination, raf, recording, lastFrame=-1, lastVideoTime=-1, lastMotion=performance.now(), position = 0, queued = 0, writeError, writeQueue = Promise.resolve(), success = false, stopped = false;
   const stop = () => {
     if (stopped) return; stopped = true;
     if (raf) cancelAnimationFrame(raf); video.pause();
@@ -236,10 +242,12 @@ async function exportRealtime(job, handle) {
     stream.getTracks().forEach(track => track.stop());
     if (destination) { audioSource.disconnect(destination); destination = null; }
     if (monitorGain) monitorGain.gain.value = previewMuted ? 0 : 1;
+    if(video.parentElement===$('export-dialog'))document.body.append(video);
     recorder = null;
   };
   job.stopRecording = stop;
   try {
+    if(job.prime)await jobWait(job,job.prime,10000);
     await jobWait(job, ensureFonts());
     if ($('audio').checked) { await jobWait(job, setupAudio()); destination = audioContext.createMediaStreamDestination(); audioSource.connect(destination); stream.addTrack(destination.stream.getAudioTracks()[0]); monitorGain.gain.value = 0; }
     await jobWait(job, new Promise(resolve => { if (video.currentTime === 0) return resolve(); video.addEventListener('seeked', resolve, { once: true }); video.currentTime = 0; }), 10000, 'Không tua được video.');
@@ -259,10 +267,15 @@ async function exportRealtime(job, handle) {
     $('export-detail').textContent = 'Ghi theo thời gian thực vào tệp trên máy. Giữ trang mở.';
     function frame() {
       if (job.signal.aborted || video.ended || writeError) { stop(); return; }
-      render(c, video, video.videoWidth, video.videoHeight, video.currentTime); report(job, video.currentTime / video.duration * .96, `Đang ghi ${time(video.currentTime)} / ${time(video.duration)}`); raf = requestAnimationFrame(frame);
+      const now=performance.now();
+      if(video.currentTime>lastVideoTime+.001){lastVideoTime=video.currentTime;lastMotion=now;}
+      if(now-lastMotion>12000){writeError=new Error('Video nguồn ngừng phát. Hãy giữ trang mở, tắt chế độ tiết kiệm pin và thử lại.');stop();return;}
+      if(video.currentTime-lastFrame>=1/Number($('fps').value)*.8){render(c,video,video.videoWidth,video.videoHeight,video.currentTime);lastFrame=video.currentTime;}
+      report(job, video.currentTime / sourceDuration() * .96, `Đang ghi ${time(video.currentTime)} / ${time(sourceDuration())}`); raf = requestAnimationFrame(frame);
     }
-    recording.start(500); await jobWait(job, video.play(), 10000, 'Không phát được video để ghi. Hãy thử phát video trước khi xuất.'); frame();
-    await jobWait(job, done, Math.max(30000, video.duration * 1500 + 15000), 'Bộ ghi video không kết thúc. Hãy thử lại.');
+    $('export-dialog').append(video);
+    job.recordingStarted=true;recording.start(500); await jobWait(job, video.play(), 10000, 'Không phát được video để ghi. Hãy thử phát video trước khi xuất.'); frame();
+    await jobWait(job, done, Math.max(30000, sourceDuration() * 1500 + 15000), 'Bộ ghi video không kết thúc. Hãy thử lại.');
     await jobWait(job, writeQueue); if (writeError) throw writeError; checkActive(job.signal);
     const recordedFile = await slot.commit();
     let result = await normalizeRecording(job, { file: recordedFile, slot, slotName: slot.name, mime, extension });
@@ -278,15 +291,12 @@ async function exportRealtime(job, handle) {
     if (currentJob === job) video.currentTime = oldTime;
   }
 }
-async function validateResult(job, result) {
-  if (!result.file || result.file.size < 128) throw new Error('Tệp video xuất ra trống.');
-  const media = document.createElement('video'), url = URL.createObjectURL(result.file);
-  try {
-    await jobWait(job, new Promise((resolve, reject) => { media.preload = 'metadata'; media.onloadedmetadata = resolve; media.onerror = () => reject(new Error('Tệp xuất ra không đọc được. Hãy thử HD hoặc tắt âm thanh.')); media.src = url; }), 15000, 'Không kiểm tra được tệp video xuất ra.');
-    const [w, h] = dimensions();
-    if (media.videoWidth !== w || media.videoHeight !== h || !Number.isFinite(media.duration) || media.duration < video.duration * .9) throw new Error('Tệp xuất thiếu khung hình hoặc sai kích thước. Hãy thử xuất lại ở HD.');
-  } finally { media.removeAttribute('src'); media.load(); URL.revokeObjectURL(url); }
+async function validateResult(job,result){
+  if(!result.file||result.file.size<128)throw new Error('Tệp video xuất ra trống.');
+  const info=await readMetadata(result.file,{signal:job.signal}),[w,h]=dimensions();
+  if(info.width!==w||info.height!==h||info.duration<sourceDuration()*.9)throw new Error('Tệp xuất thiếu khung hình hoặc sai kích thước. Hãy thử xuất lại ở HD.');
 }
+
 function presentResult(job, result, handle) {
   checkActive(job.signal);
   resultFilename = `${file.name.replace(/\.[^.]+$/, '')}-${MODELS[state.model].name.replaceAll(' ', '-')}-mockup.${result.extension}`;
@@ -308,10 +318,11 @@ function presentResult(job, result, handle) {
       const inline = new URL(url); inline.searchParams.set('inline', '1'); $('open-result').href = inline.href;
     }).catch(() => {});
   }
-  const canShare = !!navigator.canShare?.({ files: [typedFile] }); $('share').hidden = $('last-share').hidden = !canShare;
+  const canShare = !!navigator.canShare?.({ files: [typedFile] }); $('share').hidden = $('last-share').hidden = result.extension!=='mp4';
+  $('share').textContent=$('last-share').textContent=canShare?'Lưu vào thư viện Ảnh':'Cách lưu vào thư viện Ảnh';
   $('result-actions').hidden = false; $('last-result').hidden = false;
   $('last-result-info').textContent = `${dimensions().join(' × ')} · ${bytes(typedFile.size)} · ${result.extension.toUpperCase()} · ${handle ? 'Đã lưu vào tệp đã chọn' : 'Tệp trên máy đã sẵn sàng'}`;
-  $('save-help').textContent = handle ? 'Video đã được ghi vào tệp bạn chọn.' : isIOS ? 'Bấm “Lưu vào Ảnh / chia sẻ” và chọn Lưu video hoặc Lưu vào Tệp. Nút “Tải video về” lưu vào thư mục Tải về; trình duyệt trong ứng dụng có thể cần mở bằng Safari.' : 'Bấm “Tải video về” để lưu tệp đã xuất vào máy. Video không được upload lên server.';
+  $('save-help').textContent = handle ? 'Video đã được ghi vào tệp bạn chọn.' : isIOS ? 'Bấm “Lưu vào thư viện Ảnh” rồi chọn “Lưu video” hoặc Lưu vào Tệp. Nút “Tải video về” lưu vào thư mục Tải về; trình duyệt trong ứng dụng có thể cần mở bằng Safari.' : 'Bấm “Tải video về” để lưu tệp đã xuất vào máy. Video không được upload lên server.';
   if (result.extension === 'webm') $('save-help').textContent += ' WebM lưu được vào Tệp; nhập vào Ảnh trên iPhone cần MP4.';
   $('export-title').textContent = handle ? 'Đã lưu video!' : 'Mockup của bạn đã sẵn sàng.';
   $('export-detail').textContent = `${bytes(typedFile.size)} · ${result.extension.toUpperCase()} · ${dimensions().join(' × ')}${handle ? ' · đã ghi vào tệp đã chọn.' : '. Chọn lưu hoặc chia sẻ để đưa vào Tệp / Ảnh.'}`;
@@ -324,25 +335,48 @@ $('export').onclick = async () => {
   const direct = mode === 'disk' || (mode === 'auto' && typeof window.showSaveFilePicker === 'function');
   let picker;
   try { if (direct) picker = window.showSaveFilePicker({ suggestedName: 'iphone-mockup.mp4', types: [{ description: 'MP4 video', accept: { 'video/mp4': ['.mp4'] } }], startIn: 'downloads' }); } catch { toast('Không mở được bộ chọn tệp. Hãy chọn tệp tạm.'); return; }
-  if ($('audio').checked) setupAudio().catch(() => {});
-  const controller = new AbortController(), job = { controller, signal: controller.signal }; currentJob = job;
-  busy = true; document.body.classList.add('exporting'); video.pause();
+  const controller = new AbortController(), job = { controller, signal: controller.signal, sourceTime:video.currentTime }; currentJob = job;
+  busy = true; document.body.classList.add('exporting'); video.pause();$('result-preview').pause();$('result-preview').removeAttribute('src');$('result-preview').load();
   $('export-title').textContent = 'Đang tạo mockup…'; $('export-detail').textContent = 'Ghi từng phần vào tệp trên máy. Có thể hủy bất cứ lúc nào.';
   $('result-actions').hidden = true; $('cancel-export').textContent = 'Hủy xuất'; $('cancel-export').disabled = false; $('export-dialog').showModal(); report(job, 0, 'Đang chuẩn bị…');
   let result;
+  if($('processing').value==='realtime'||(!window.VideoEncoder||!window.VideoDecoder)){
+    if($('audio').checked){setupAudio().catch(()=>{});if(monitorGain)monitorGain.gain.value=0;}
+    job.prime=video.play();job.prime.then(()=>{if(currentJob===job&&!job.recordingStarted)video.pause();}).catch(()=>{});
+  }
   try {
     const handle = picker ? await jobWait(job, picker, 120000, 'Bộ chọn tệp chưa phản hồi. Hãy thử lại.') : null;
     navigator.wakeLock?.request('screen').then(lock => { if (currentJob === job) job.wakeLock = lock; else lock.release().catch(() => {}); }).catch(() => {});
-    if (window.Worker && window.OffscreenCanvas && window.VideoEncoder && window.VideoDecoder) result = await runWorker(job, handle);
+    const method=$('processing').value;
+    const stable=method==='stable'||(method==='auto'&&isIOS);
+    if(!stable&&method!=='realtime'&&window.Worker&&window.OffscreenCanvas&&window.VideoEncoder&&window.VideoDecoder){
+      video.removeAttribute('src');video.load();
+      try{result=await runWorker(job,handle);}catch(error){
+        if(job.signal.aborted||method==='fast'||Math.min(...dimensions())>1080||/dung lượng|bộ nhớ|tệp|ghi/i.test(error.message))throw error;
+        if(job.slotName)removeTemporaryOutput(job.slotName);job.slotName=null;
+        $('export-detail').textContent='Chuyển sang chế độ tương thích…';
+      }
+    }
     checkActive(job.signal);
-    if (!result) result = await exportRealtime(job, handle);
+    if(!result&&method!=='realtime'&&window.VideoEncoder&&window.VideoDecoder){
+      video.removeAttribute('src');video.load();await jobWait(job,ensureFonts());
+      const [width,height]=dimensions();
+      try{result=await exportSequence({file,state:structuredClone({...state,backgroundPreset:BACKGROUNDS[state.background]}),variant:FINISHES[state.finish],assets:frameAssets,backgroundImage,backgroundUrl,width,height,bitrate:bitrate(),fps:Number($('fps').value),audio:$('audio').checked,handle,signal:job.signal,progress:(p,label)=>report(job,p,label),onSlot:name=>job.slotName=name,onStop:stop=>job.stopSequence=stop});}
+      catch(error){if(job.signal.aborted||method==='stable'||Math.min(width,height)>1080)throw error;$('export-detail').textContent='Chuyển sang ghi tương thích theo thời gian thực…';}
+    }
+    checkActive(job.signal);
+    if(!result){await restoreSource(job);result=await exportRealtime(job,handle);}
+    job.slotName=null;
     await validateResult(job, result); presentResult(job, result, handle);
   } catch (error) {
     if (result?.slotName) removeTemporaryOutput(result.slotName);
     if (currentJob !== job) return;
     if (error.name === 'AbortError') $('export-dialog').close();
     else { $('export-title').textContent = 'Chưa xuất được video'; $('export-detail').textContent = error.message || 'Hãy thử chất lượng HD.'; $('cancel-export').textContent = 'Đóng'; }
-  } finally { disposeJob(job); unlock(job); }
+  } finally {
+    disposeJob(job);unlock(job);
+    if(fileUrl&&video.getAttribute('src')!==fileUrl&&!busy){const url=fileUrl;attachVideo(video,url).then(()=>{if(fileUrl===url&&!busy){if(job.sourceTime>0)video.currentTime=Math.min(job.sourceTime,sourceDuration());drawPreview();}}).catch(()=>{});}
+  }
 };
 function cancelExport() {
   if (!busy) { $('result-preview').pause(); $('export-dialog').close(); return; }
@@ -353,7 +387,11 @@ function cancelExport() {
 }
 $('cancel-export').onclick = cancelExport;
 $('export-dialog').addEventListener('cancel', e => { if (busy) { e.preventDefault(); cancelExport(); } });
-$('share').onclick = async () => { try { await navigator.share({ files: [exportBlob], title: 'Video mockup iPhone' }); } catch (error) { if (error.name !== 'AbortError') toast('Không chia sẻ được. Hãy bấm Tải video về hoặc mở trong Safari.'); } };
+$('share').onclick=()=>{
+  if(!exportBlob)return;
+  if(!navigator.share||!navigator.canShare?.({files:[exportBlob]})){toast('Trình duyệt chưa chia sẻ được video. Mở bằng Safari, hoặc tải vào Tệp rồi chọn Chia sẻ → Lưu video.');return;}
+  try{navigator.share({files:[exportBlob]}).catch(error=>{if(error.name!=='AbortError')toast('Chưa mở được bảng chia sẻ. Hãy tải vào Tệp rồi chọn Chia sẻ → Lưu video.');});}catch{toast('Hãy tải vào Tệp rồi chọn Chia sẻ → Lưu video.');}
+};
 $('last-share').onclick = () => $('share').onclick();
 for (const id of ['download', 'last-download']) $(id).addEventListener('click', () => { if (isIOS) toast('Video tải về nằm ở Tệp › Tải về. Để lưu vào Ảnh, dùng nút chia sẻ.'); });
 document.addEventListener('visibilitychange', () => { if (busy && document.hidden && recorder?.state === 'recording') { cancelExport(); toast('Đã dừng ghi vì trang bị ẩn. Hãy giữ trang mở khi xuất bằng bộ ghi tương thích.'); } });
