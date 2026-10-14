@@ -15,9 +15,11 @@ Tạo video mockup iPhone trên trình duyệt, miễn phí và không cần đ�
 
 **Không giữ toàn bộ bản xuất trong RAM, không upload video lên server.** Trình duyệt vẫn cần RAM cho khung hình, bộ mã hóa và các đoạn ghi nhỏ.
 
+WebCodecs ghép và mã hóa trong dedicated worker với OffscreenCanvas, giữ giao diện phản hồi. Hủy chấm dứt worker ngay; đọc/ghi có timeout, cleanup chạy sau khi giao diện đã được mở khóa. Tệp được kiểm tra kích thước pixel và thời lượng trước khi báo hoàn tất.
+
 1. Chrome/Edge máy tính: chế độ Tự động mở bộ chọn tệp trước khi xuất, ghi từng phần vào tệp đã chọn. Hoàn tất là tệp đã có trên máy. Hủy xuất sẽ abort để giữ tệp cũ nếu chọn ghi đè.
 2. Safari/iPhone và trình duyệt không có showSaveFilePicker: ghi vào tệp cục bộ OPFS, sau đó dùng bảng chia sẻ để Lưu vào Tệp hoặc Lưu video vào Ảnh. Safari mới dùng createWritable; bản cũ có thể dùng createSyncAccessHandle trong dedicated worker khi API có sẵn.
-3. Tải từ tệp tạm qua service worker cùng origin, Content-Disposition và HTTP Range; không đọc toàn bộ video bằng arrayBuffer để tải. Khi service worker không khả dụng, dùng URL trỏ vào File đã ghi trên máy.
+3. Tệp xuất sẵn sàng tải qua URL trỏ vào File ngay khi ghi xong. Trên iPhone ưu tiên File và bảng chia sẻ. Trên Chromium, service worker có thể nâng cấp đường tải sang Content-Disposition và HTTP Range; không đọc toàn bộ video bằng arrayBuffer để tải. Service worker không khởi động được cũng không chặn xuất hoặc tải.
 4. Đường dự phòng MediaRecorder cũng ghi các đoạn ngắn vào tệp, không gom danh sách chunk của cả video trong RAM. MP4 được chuẩn hóa âm thanh AAC trên tệp khi môi trường hỗ trợ.
 
 MP4 H.264/AAC được ưu tiên. Máy không mã hóa được H.264 có thể xuất WebM; WebM lưu được vào Tệp nhưng có thể không nhập trực tiếp vào Ảnh iPhone. Safari chưa hỗ trợ bộ chọn tệp ghi trực tiếp như Chrome; không thể tự ghi vào thư viện Ảnh mà không có thao tác người dùng trong bảng chia sẻ.
@@ -33,21 +35,24 @@ npm run build
 python3 -m http.server 8766 --directory dist
 ```
 
-Mở http://localhost:8766. Các bài kiểm tra dùng playwright-core và Chromium có sẵn:
+Mở http://localhost:8766. Các bài kiểm tra dùng playwright-core và Chromium có sẵn; tạo video thử bằng `node scripts/create-test-videos.mjs` (cần FFmpeg).
 
+- `qa-loading.mjs`: mở/thay 12 video qua các lần tải lại trang, kiểm tra khung hình đầu thực sự đã giải mã.
+- `qa-live.mjs`: mở bản công khai, hủy/xuất lại video 12 giây có chữ, phát thật trong trình duyệt và tải hai lần.
 - `qa.mjs`: xem trước, tỷ lệ, xuất/tải từ tệp, ghi trực tiếp, MediaRecorder, hủy xuất, bố cục mobile.
 - `qa-highres.mjs`: các mức HD đến 4K, xuất 4K thật, tải lại và chia sẻ File, các khung máy.
+- `qa-recovery.mjs`: worker / bộ chọn tệp / bước mở và ghi tệp không phản hồi, timeout, hủy khi mã hóa Full HD, xuất lại, bảo toàn tệp ghi đè, tải thật khi service worker không hoạt động và OPFS đồng bộ trong worker.
 - `qa-editor.mjs`: scale 200%, nền, font/mẫu chữ, kéo giãn và kéo vị trí, nhiều lớp chữ, xuất chữ động, Range và đường ghi bằng worker.
 
-Video thử tự tạo ở `test-results/input.mp4` (360×780, 2s, H.264/AAC) và `test-results/short.mp4` (0.3s). Thư mục test-results không được commit/deploy. Kiểm tra iOS thật vẫn cần thiết vì mô phỏng API trên Chromium không phải Safari.
+Bài recovery dùng thêm video 12 giây `test-results/long.mp4`. Video thử tự tạo ở `test-results/input.mp4` (360×780, 2s, H.264/AAC) và `test-results/short.mp4` (0.3s). Thư mục test-results không được commit/deploy. Kiểm tra iOS thật vẫn cần thiết vì mô phỏng API trên Chromium không phải Safari.
 
 ## GitHub Pages
 
-`.github/workflows/pages.yml` tự build và deploy dist khi push main. Settings → Pages dùng GitHub Actions. URL tương đối và worker đều hỗ trợ project subpath `/Mockup_video_iphone/`. Không backend, khóa API hoặc tài khoản ChatGPT. Service worker chỉ phục vụ tệp video cục bộ, không cache HTML/JS của app.
+`.github/workflows/pages.yml` tự build và deploy dist khi push main. Settings → Pages dùng GitHub Actions. URL tương đối và worker đều hỗ trợ project subpath `/Mockup_video_iphone/`. Không backend, khóa API hoặc tài khoản ChatGPT. Mỗi build dùng tên JS/worker có hash nội dung để tránh dùng mã xuất cũ từ cache. Service worker chỉ phục vụ tệp video cục bộ, không cache HTML/JS của app.
 
 ## Giới hạn
 
-Tốc độ và độ phân giải tối đa phụ thuộc máy, codec nguồn và trình duyệt. Tăng độ phân giải xuất không khôi phục chi tiết video gốc không có. Giữ trang mở cho đường ghi theo thời gian thực. Các API ghi tệp và chia sẻ có mức hỗ trợ khác nhau; app kiểm tra API và báo lỗi cụ thể khi không thể mở tệp.
+Tốc độ và độ phân giải tối đa phụ thuộc máy, codec nguồn và trình duyệt. Đường MediaRecorder dự phòng giới hạn Full HD để tránh chặn giao diện bằng khung hình 4K; QHD/4K cần WebCodecs và OffscreenCanvas trong worker. Bản xuất chỉ hiện khi tệp có video đủ thời lượng và đúng kích thước đã chọn. Tăng độ phân giải xuất không khôi phục chi tiết video gốc không có. Giữ trang mở cho đường ghi theo thời gian thực. Các API ghi tệp và chia sẻ có mức hỗ trợ khác nhau; app kiểm tra API và báo lỗi cụ thể khi không thể mở tệp.
 
 ## Tài nguyên và giấy phép
 

@@ -26,7 +26,7 @@ try {
   await page.locator('#quality').selectOption('720');
   await page.locator('#storage').selectOption('temp');
   await page.locator('#export').click();
-  await page.waitForFunction(() => !document.getElementById('result-actions').hidden || document.getElementById('export-title').textContent === 'Chưa xuất được video', { timeout: 120000 });
+  await page.waitForFunction(() => !document.getElementById('result-actions').hidden || document.getElementById('export-title').textContent === 'Chưa xuất được video', null, { timeout: 120000 });
   assert.equal(await page.locator('#export-title').textContent(), 'Mockup của bạn đã sẵn sàng.', await page.locator('#export-detail').textContent());
   const downloadPromise = page.waitForEvent('download');
   await page.locator('#download').click();
@@ -38,7 +38,7 @@ try {
   await page.evaluate(() => { window.showSaveFilePicker = async () => (await navigator.storage.getDirectory()).getFileHandle('qa-output.mp4', { create: true }); });
   await page.locator('#storage').selectOption('disk');
   await page.locator('#export').click();
-  await page.waitForFunction(() => document.getElementById('export-title').textContent === 'Đã lưu video!' || document.getElementById('export-title').textContent === 'Chưa xuất được video', { timeout: 120000 });
+  await page.waitForFunction(() => document.getElementById('export-title').textContent === 'Đã lưu video!' || document.getElementById('export-title').textContent === 'Chưa xuất được video', null, { timeout: 120000 });
   assert.equal(await page.locator('#export-title').textContent(), 'Đã lưu video!', await page.locator('#export-detail').textContent());
   assert.ok(await page.evaluate(async () => (await (await (await navigator.storage.getDirectory()).getFileHandle('qa-output.mp4')).getFile()).size) > 1000);
   await page.locator('#cancel-export').click();
@@ -49,7 +49,7 @@ try {
   // Force the compatibility path and verify recording still includes a result.
   await page.evaluate(() => { window.VideoEncoder = undefined; });
   await page.locator('#export').click();
-  await page.waitForFunction(() => !document.getElementById('result-actions').hidden || document.getElementById('export-title').textContent === 'Chưa xuất được video', { timeout: 120000 });
+  await page.waitForFunction(() => !document.getElementById('result-actions').hidden || document.getElementById('export-title').textContent === 'Chưa xuất được video', null, { timeout: 120000 });
   assert.equal(await page.locator('#export-title').textContent(), 'Mockup của bạn đã sẵn sàng.', await page.locator('#export-detail').textContent());
   const fallbackDownload = page.waitForEvent('download');
   await page.locator('#download').click();

@@ -8,7 +8,7 @@ try{
   assert.equal(await page.locator('#backgrounds button').count(),18);
   assert.equal(await page.locator('#storage option[value=ram]').count(),0);
   await page.locator('#video-file').setInputFiles('test-results/input.mp4');
-  await page.waitForFunction(()=>!document.getElementById('export').disabled,{timeout:60000});
+  await page.waitForFunction(()=>!document.getElementById('export').disabled,null,{timeout:60000});
   await page.locator('#scale').evaluate(el=>{el.value=200;el.dispatchEvent(new Event('input'));});
   assert.equal(await page.locator('#scale-value').textContent(),'200%');
   const zoomed=await page.locator('#preview').evaluate(c=>[...c.getContext('2d').getImageData(5,c.height/2,1,1).data]);
@@ -37,9 +37,9 @@ try{
   await page.locator('#storage').selectOption('temp');await page.locator('#quality').selectOption('720');
   await page.locator('#play').click();await page.waitForTimeout(900);await page.locator('#play').click();
   await page.screenshot({path:'test-results/editor-desktop.png',fullPage:true});
-  await page.locator('#export').click();await page.waitForFunction(()=>!document.getElementById('result-actions').hidden||document.getElementById('export-title').textContent==='Chưa xuất được video',{timeout:120000});
+  await page.locator('#export').click();await page.waitForFunction(()=>!document.getElementById('result-actions').hidden||document.getElementById('export-title').textContent==='Chưa xuất được video',null,{timeout:120000});
   assert.equal(await page.locator('#export-title').textContent(),'Mockup của bạn đã sẵn sàng.',await page.locator('#export-detail').textContent());
-  const url=await page.locator('#download').getAttribute('href');assert.match(url,/local-video/);
+  await page.waitForFunction(()=>document.getElementById('download').href.includes('local-video'));const url=await page.locator('#download').getAttribute('href');assert.match(url,/local-video/);
   assert.equal(await page.locator('#download').getAttribute('download'),null,'Streamed downloads must use HTTP headers, not the download attribute');
   const range=await page.evaluate(async url=>{const r=await fetch(url,{headers:{Range:'bytes=0-31'}});return{status:r.status,length:(await r.arrayBuffer()).byteLength,range:r.headers.get('Content-Range')};},url);
   assert.equal(range.status,206);assert.equal(range.length,32);
@@ -48,7 +48,7 @@ try{
   await page.setViewportSize({width:390,height:844});await page.screenshot({path:'test-results/editor-mobile.png',fullPage:true});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
   // Force the older-Safari disk writer, without changing the encoding path.
   await page.evaluate(()=>{FileSystemFileHandle.prototype.createWritable=undefined;});
-  await page.locator('#export').click();await page.waitForFunction(()=>!document.getElementById('result-actions').hidden||document.getElementById('export-title').textContent==='Chưa xuất được video',{timeout:120000});
+  await page.locator('#export').click();await page.waitForFunction(()=>!document.getElementById('result-actions').hidden||document.getElementById('export-title').textContent==='Chưa xuất được video',null,{timeout:120000});
   assert.equal(await page.locator('#export-title').textContent(),'Mockup của bạn đã sẵn sàng.',await page.locator('#export-detail').textContent());
   const workerDl=page.waitForEvent('download');await page.locator('#download').click();await(await workerDl).saveAs('test-results/worker-disk.mp4');
   assert.deepEqual(errors,[]);

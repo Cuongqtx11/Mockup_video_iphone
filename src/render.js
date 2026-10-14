@@ -2,7 +2,7 @@ import { paintBackground } from './backgrounds.js';
 import { drawTexts } from './text-render.js';
 export function createRenderer(getConfig) {
   let cache = null;
-  function layer(w, h) { const canvas = document.createElement('canvas'); canvas.width = w; canvas.height = h; return canvas; }
+  function layer(w, h) { if (typeof document === 'undefined') return new OffscreenCanvas(w, h); const canvas = document.createElement('canvas'); canvas.width = w; canvas.height = h; return canvas; }
   function render(context, source, sourceWidth, sourceHeight, timestamp = 0) {
     const { state, variant, assets, backgroundImage, backgroundUrl } = getConfig();
     const width = context.canvas.width, height = context.canvas.height;

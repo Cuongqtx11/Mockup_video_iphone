@@ -13,7 +13,7 @@ try {
   }
   await page.locator('#storage').selectOption('temp');
   await page.locator('#export').click();
-  await page.waitForFunction(() => !document.getElementById('result-actions').hidden || document.getElementById('export-title').textContent === 'Chưa xuất được video', { timeout: 180000 });
+  await page.waitForFunction(() => !document.getElementById('result-actions').hidden || document.getElementById('export-title').textContent === 'Chưa xuất được video', null, { timeout: 180000 });
   assert.equal(await page.locator('#export-title').textContent(), 'Mockup của bạn đã sẵn sàng.', await page.locator('#export-detail').textContent());
   const dl = page.waitForEvent('download'); await page.locator('#download').click();
   await (await dl).saveAs('test-results/4k.mp4');
